@@ -25,11 +25,14 @@ body {
     background-color: #333;
     color: #fff;
     font-size: 2rem;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
+    display: block;
+    text-align: right;
+    line-height: 120px;
     padding: 0 20px;
-    overflow: hidden;
+    /* Enable horizontal scrolling */
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
 }
 
 .btn {
@@ -40,18 +43,18 @@ body {
     outline: none;
 }
 
-.operator {
-    background-color: #f2a33c;
-}
-
-.equals {
-    background-color: #f2573f;
-}
-
 .btn:hover {
     filter: brightness(110%);
 }
 
 .btn:active {
     filter: brightness(90%);
+}
+
+.operator {
+    background-color: #f2a33c;
+}
+
+.equals {
+    background-color: #f2573f;
 }
