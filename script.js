@@ -40,6 +40,9 @@ let secondOperand = '';
 let currentOperator = null;
 let shouldResetScreen = false;
 
+// Allowed range from -MAX_VALUE to MAX_VALUE
+const MAX_VALUE = 9.9999999e99;
+
 const display = document.querySelector('.display');
 const digitButtons = document.querySelectorAll('.digit');
 const operatorButtons = document.querySelectorAll('[data-operator]');
@@ -58,13 +61,9 @@ operatorButtons.forEach(button => {
 });
 
 equalsButton.addEventListener('click', evaluate);
-
 clearButton.addEventListener('click', clearAll);
-
 backspaceButton.addEventListener('click', backspace);
-
 percentButton.addEventListener('click', percent);
-
 signButton.addEventListener('click', toggleSign);
 
 function appendDigit(digit) {
@@ -82,6 +81,19 @@ function appendDigit(digit) {
     } else {
         display.textContent += digit;
     }
+
+    // Check if the number exceeds allowed range
+    let currentNumber = parseFloat(display.textContent);
+    if (!isNaN(currentNumber)) {
+        if (Math.abs(currentNumber) > MAX_VALUE) {
+            display.textContent = 'Error';
+            shouldResetScreen = true;
+            return;
+        }
+    }
+
+    // Auto scroll to right after appending
+    display.scrollLeft = display.scrollWidth;
 }
 
 function setOperator(operator) {
@@ -104,9 +116,8 @@ function evaluate() {
     secondOperand = display.textContent;
     const result = operate(currentOperator, firstOperand, secondOperand);
 
-    if (result === null) {
-        // Division by zero or invalid
-        display.textContent = 'Error';
+    if (result === null || Math.abs(result) > MAX_VALUE) {
+        display.textContent = 'Overflow';
     } else {
         display.textContent = roundResult(result);
     }
@@ -140,6 +151,11 @@ function backspace() {
 function percent() {
     const currentValue = parseFloat(display.textContent);
     const percentValue = currentValue / 100;
+
+    if (Math.abs(percentValue) > MAX_VALUE) {
+        display.textContent = 'Overflow';
+        return;
+    }
     display.textContent = roundResult(percentValue);
 }
 
@@ -150,6 +166,12 @@ function toggleSign() {
 
     let currentValue = parseFloat(display.textContent);
     currentValue = -currentValue;
+
+    if (Math.abs(currentValue) > MAX_VALUE) {
+        display.textContent = 'Overflow';
+        return;
+    }
+
     display.textContent = currentValue;
 }
 
@@ -159,5 +181,32 @@ function resetScreen() {
 }
 
 function roundResult(num) {
-    return Math.round(num * 1e8) / 1e8;
+    const rounded = Math.round(num * 1e8) / 1e8;
+    const str = rounded.toString();
+
+    if (str.length > 17) {
+        return rounded.toExponential(8);
+    }
+
+    return rounded;
+}
+
+window.addEventListener('keydown', handleKeyboardInput);
+
+function handleKeyboardInput(e) {
+    if ((e.key >= '0' && e.key <= '9') || e.key === '.') {
+        appendDigit(e.key);
+    }
+    if (e.key === '+' || e.key === '-' || e.key === '*' || e.key === '/') {
+        setOperator(e.key);
+    }
+    if (e.key === 'Enter' || e.key === '=') {
+        evaluate();
+    }
+    if (e.key === 'Escape') {
+        clearAll();
+    }
+    if (e.key === 'Backspace') {
+        backspace();
+    }
 }
